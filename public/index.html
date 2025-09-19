@@ -12,26 +12,54 @@
       theme: {
         extend: {
           colors: {
-            'bg': '#0f172a',
-            'card': '#111827',
-            'text': '#f1f5f9',
-            'muted': '#94a3b8',
-            'accent': '#3b82f6',
-            'accent-hover': '#2563eb',
-            'danger': '#ef4444',
-            'danger-hover': '#dc2626',
-            'border': '#1e293b',
-            'border-light': '#334155',
+            'bg': 'hsl(var(--bg))',
+            'card': 'hsl(var(--card))',
+            'text': 'hsl(var(--text))',
+            'muted': 'hsl(var(--muted))',
+            'accent': 'hsl(var(--accent))',
+            'accent-hover': 'hsl(var(--accent-hover))',
+            'danger': 'hsl(var(--danger))',
+            'danger-hover': 'hsl(var(--danger-hover))',
+            'border': 'hsl(var(--border))',
+            'border-light': 'hsl(var(--border-light))',
           }
         }
       }
     }
   </script>
   <style>
+    :root {
+      --bg: 222 47% 11%;
+      --card: 224 71% 4%;
+      --text: 210 40% 98%;
+      --muted: 215 20% 65%;
+      --accent: 221 83% 53%;
+      --accent-hover: 221 83% 48%;
+      --danger: 0 84% 60%;
+      --danger-hover: 0 72% 51%;
+      --border: 217 33% 17%;
+      --border-light: 215 28% 27%;
+      --bg-gradient-start: 222 47% 9%;
+      --bg-gradient-end: 222 47% 8%;
+    }
+
+    html.light {
+      --bg: 210 40% 96%;
+      --card: 0 0% 100%;
+      --text: 222 47% 11%;
+      --muted: 215 16% 47%;
+      --border: 214 32% 91%;
+      --border-light: 215 25% 85%;
+      --bg-gradient-start: 210 40% 94%;
+      --bg-gradient-end: 210 40% 98%;
+    }
+
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #0b1223 0%, #0f172a 50%, #0a0f1c 100%);
+      background: linear-gradient(135deg, hsl(var(--bg-gradient-start)) 0%, hsl(var(--bg)) 50%, hsl(var(--bg-gradient-end)) 100%);
       min-height: 100vh;
+      color: hsl(var(--text));
+      background-color: hsl(var(--bg));
     }
     
     @keyframes fadeIn {
@@ -89,6 +117,10 @@
         <div class="flex gap-2 flex-wrap">
           <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="exportBtn" title="Export as JSON">Export</button>
           <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="importBtn" title="Import from JSON">Import</button>
+          <button class="ghost px-4 py-2 rounded-xl bg-transparent text-muted border border-border-light cursor-pointer transition-all duration-200 hover:bg-accent/10 hover:text-accent hover:border-accent" id="theme-toggle-btn" title="Toggle theme">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
           <input type="file" id="fileInput" accept="application/json" hidden />
         </div>
       </section>
@@ -326,6 +358,40 @@
           $(this).val(''); // Reset file input
         }
       });
+
+      // --- Theme Switching ----------------------------------------------------
+      const THEME_KEY = "theme";
+      const $themeToggle = $("#theme-toggle-btn");
+      const $sunIcon = $themeToggle.find(".lucide-sun");
+      const $moonIcon = $themeToggle.find(".lucide-moon");
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          $("html").addClass("light");
+          $sunIcon.addClass("hidden");
+          $moonIcon.removeClass("hidden");
+        } else {
+          $("html").removeClass("light");
+          $sunIcon.removeClass("hidden");
+          $moonIcon.addClass("hidden");
+        }
+        localStorage.setItem(THEME_KEY, theme);
+      }
+
+      $themeToggle.on("click", function() {
+        const isLight = $("html").hasClass("light");
+        applyTheme(isLight ? "dark" : "light");
+      });
+
+      // Initial theme setup
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      } else {
+        applyTheme(prefersDark ? 'dark' : 'light');
+      }
 
       // --- Bootstrap ------------------------------------------------------------
       // Only seed initial data for first-time users (when localStorage has never been initialized)
